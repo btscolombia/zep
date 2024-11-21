@@ -4,26 +4,23 @@ services:
   zep:
     image: zepai/zep:latest
     ports:
-      - "8000:8000"
+      - "8000:8000"  # Puerto donde Zep estará disponible
     volumes:
       - ./zep.yaml:/app/zep.yaml
     environment:
       - ZEP_CONFIG_FILE=zep.yaml
     networks:
-      - minha_rede  # Usando la red existente
+      - minha_rede  # Usamos la red existente "minha_rede"
     depends_on:
       - graphiti
       - db
     labels:
-      # Configuración de Traefik para enrutar el tráfico hacia Zep
-      - "traefik.enable=true"
-      - "traefik.http.routers.zep.rule=Host(`zep.agencybts.com`)"  # Cambiar al dominio deseado
-      - "traefik.http.services.zep.loadbalancer.server.port=8000"  # El puerto interno dentro del contenedor
-      - "traefik.http.routers.zep.entrypoints=web"  # Para HTTP (puerto 80)
-      # Si usas HTTPS, agrega estas líneas:
-      - "traefik.http.routers.zep.entrypoints=websecure"  # Para HTTPS (puerto 443)
-      - "traefik.http.routers.zep.tls=true"  # Habilitar TLS (SSL)
-      - "traefik.http.routers.zep.tls.certresolver=http"  # Usar Let's Encrypt para SSL
+      - "traefik.enable=true"  # Habilitar Traefik para enrutar el tráfico hacia este servicio
+      - "traefik.http.routers.zep.rule=Host(`zep.agencybts.com`)"  # Cambia a tu dominio
+      - "traefik.http.services.zep.loadbalancer.server.port=8000"  # El puerto dentro del contenedor
+      - "traefik.http.routers.zep.entrypoints=web"  # Para tráfico HTTP (puerto 80)
+      - "traefik.http.routers.zep.tls=true"  # Habilitar TLS/SSL
+      - "traefik.http.routers.zep.tls.certresolver=http"  # Usar Let's Encrypt para obtener el certificado SSL
     restart: always
 
   db:
@@ -32,7 +29,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     networks:
-      - minha_rede
+      - minha_rede  # Usamos la red existente "minha_rede"
     healthcheck:
       test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
       interval: 5s
@@ -50,7 +47,7 @@ services:
     env_file:
       - .env
     networks:
-      - minha_rede
+      - minha_rede  # Usamos la red existente "minha_rede"
     healthcheck:
       test:
         [
@@ -75,7 +72,7 @@ services:
   neo4j:
     image: neo4j:5.22.0
     networks:
-      - minha_rede
+      - minha_rede  # Usamos la red existente "minha_rede"
     healthcheck:
       test: wget http://localhost:7687 || exit 1
       interval: 1s
@@ -90,32 +87,10 @@ services:
     environment:
       - NEO4J_AUTH=neo4j/zepzepzep
 
-  traefik:
-    image: traefik:v2.10
-    container_name: traefik
-    command:
-      - "--api.insecure=true"  # Acceso inseguro al dashboard de Traefik (opcional)
-      - "--entryPoints.web.address=:80"  # Puerto HTTP
-      - "--entryPoints.websecure.address=:443"  # Puerto HTTPS
-      - "--providers.docker=true"  # Habilitar Docker como proveedor
-      - "--certificatesresolvers.http.acme.email=tu_email@dominio.com"  # Tu correo para Let's Encrypt
-      - "--certificatesresolvers.http.acme.storage=/etc/traefik/acme.json"  # Almacenar certificados
-      - "--certificatesresolvers.http.acme.httpChallenge.entryPoint=web"  # Usar challenge HTTP para SSL
-    ports:
-      - "80:80"    # Acceso HTTP
-      - "443:443"  # Acceso HTTPS
-      - "8080:8080"  # Dashboard de Traefik
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"  # Permitir a Traefik gestionar contenedores de Docker
-      - "/etc/traefik/acme.json:/etc/traefik/acme.json"  # Almacenar certificados de SSL
-    networks:
-      - minha_rede  # Asegurarse de que Traefik y Zep estén en la misma red
-    restart: always
-
 volumes:
   neo4j_data:
   zep-db:
 
 networks:
-  minha_rede:
-    external: true  # Usar red existente
+  minha_rede:  # Conectando todos los contenedores a la red existente "minha_rede"
+    external: true  # Especificamos que la red es externa, ya existente
