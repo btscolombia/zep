@@ -4,7 +4,7 @@ services:
   zep:
     image: zepai/zep:latest
     ports:
-      - "8000:8000" 
+      - "8000:8000"  # Exponer el puerto 8000 del contenedor
     volumes:
       - ./zep.yaml:/app/zep.yaml
     environment:
