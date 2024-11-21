@@ -1,3 +1,5 @@
+version: '3.7'
+
 services:
   zep:
     image: zepai/zep:latest
@@ -15,9 +17,6 @@ services:
 
   db:
     image: ankane/pgvector:v0.5.1
-    container_name: zep-ce-postgres
-    restart: on-failure
-    shm_size: "128mb" # Increase this if vacuuming fails with a "no space left on device" error
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -86,4 +85,4 @@ volumes:
 
 networks:
   zep-network:
-    driver: bridge
+    driver: overlay  # Cambiado de 'bridge' a 'overlay'
