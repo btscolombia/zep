@@ -4,7 +4,7 @@ services:
   zep:
     image: zepai/zep:latest
     ports:
-      - "8000:8000"
+      - "8003:8000"
     volumes:
       - ./zep.yaml:/app/zep.yaml
     environment:
