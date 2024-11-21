@@ -19,10 +19,10 @@ services:
       - "traefik.http.routers.zep.rule=Host(`zep.agencybts.com`)"  # Cambia esto al dominio correcto
       - "traefik.http.services.zep.loadbalancer.server.port=8000"  # Puerto interno
       - "traefik.http.routers.zep.entrypoints=web"  # Para HTTP (puerto 80)
-       Si usas HTTPS:
-       - "traefik.http.routers.zep.entrypoints=websecure"
-       - "traefik.http.routers.zep.tls=true"
-       - "traefik.http.routers.zep.tls.certresolver=http"  # Let's Encrypt
+       #Si usas HTTPS:
+       #- "traefik.http.routers.zep.entrypoints=websecure"
+       #- "traefik.http.routers.zep.tls=true"
+       #- "traefik.http.routers.zep.tls.certresolver=http"  # Let's Encrypt
     restart: always
 
   db:
