@@ -16,7 +16,7 @@ services:
       - db
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.zep.rule=Host(`zep-tuservidor.com`)"  # Cambia esto al dominio correcto
+      - "traefik.http.routers.zep.rule=Host(`zep.agencybts.com`)"  # Cambia esto al dominio correcto
       - "traefik.http.services.zep.loadbalancer.server.port=8000"  # Puerto interno
       - "traefik.http.routers.zep.entrypoints=web"  # Para HTTP (puerto 80)
       # Si usas HTTPS:
