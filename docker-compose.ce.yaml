@@ -58,7 +58,8 @@ services:
     timeout: 5s
     retries: 3
   depends_on:
-    - neo4j
+  - graphiti
+  - db
   environment:
     - OPENAI_API_KEY=${OPENAI_API_KEY}
     - MODEL_NAME=gpt-4o-mini
