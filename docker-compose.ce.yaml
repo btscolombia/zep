@@ -85,4 +85,4 @@ volumes:
 
 networks:
   zep-network:
-    driver: overlay  # Cambiado de 'bridge' a 'overlay'
+    driver: overlay  # Usando overlay en lugar de bridge
