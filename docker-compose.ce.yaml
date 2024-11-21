@@ -4,7 +4,7 @@ services:
   zep:
     image: zepai/zep:latest
     ports:
-      - "8080:8000"
+      - "8080:8000"  # Expone el puerto 8000 dentro del contenedor a 8080 en el host
     volumes:
       - ./zep.yaml:/app/zep.yaml
     environment:
@@ -14,6 +14,17 @@ services:
     depends_on:
       - graphiti
       - db
+    labels:
+      # Configuración de Traefik para enrutar el tráfico hacia Zep
+      - "traefik.enable=true"
+      - "traefik.http.routers.zep.rule=Host(`zep-tuservidor.com`)"  # Cambia este dominio por el tuyo
+      - "traefik.http.services.zep.loadbalancer.server.port=8000"  # El puerto interno dentro del contenedor
+      - "traefik.http.routers.zep.entrypoints=web"  # Para HTTP (puerto 80)
+      # Si usas HTTPS, agrega estas líneas:
+      # - "traefik.http.routers.zep.entrypoints=websecure"
+      # - "traefik.http.routers.zep.tls=true"
+      # - "traefik.http.routers.zep.tls.certresolver=http"  # Usar Let's Encrypt para SSL
+    restart: always
 
   db:
     image: ankane/pgvector:v0.5.1
@@ -72,12 +83,34 @@ services:
       retries: 20
       start_period: 3s
     ports:
-      - "7474:7474" # HTTP
-      - "7687:7687" # Bolt
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
     volumes:
       - neo4j_data:/data
     environment:
       - NEO4J_AUTH=neo4j/zepzepzep
+
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    command:
+      - "--api.insecure=true"  # Acceso inseguro al dashboard de Traefik (opcional)
+      - "--entryPoints.web.address=:80"  # Puerto HTTP
+      - "--entryPoints.websecure.address=:443"  # Puerto HTTPS (opcional)
+      - "--providers.docker=true"  # Habilitar Docker como proveedor
+      - "--certificatesresolvers.http.acme.email=tu_email@dominio.com"  # Tu correo para Let's Encrypt
+      - "--certificatesresolvers.http.acme.storage=/etc/traefik/acme.json"  # Almacenar certificados
+      - "--certificatesresolvers.http.acme.httpChallenge.entryPoint=web"  # Usar challenge HTTP para SSL
+    ports:
+      - "80:80"    # Acceso HTTP
+      - "443:443"  # Acceso HTTPS (opcional)
+      - "8080:8080"  # Dashboard de Traefik
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"  # Permitir a Traefik gestionar contenedores de Docker
+      - "/etc/traefik/acme.json:/etc/traefik/acme.json"  # Almacenar certificados de SSL
+    networks:
+      - zep-network  # Asegurarse de que Traefik y Zep estén en la misma red
+    restart: always
 
 volumes:
   neo4j_data:
@@ -85,4 +118,4 @@ volumes:
 
 networks:
   zep-network:
-    driver: overlay  # Usando overlay en lugar de bridge
+    driver: overlay  # Usar la red overlay existente en lugar de bridge
